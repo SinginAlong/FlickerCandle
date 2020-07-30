@@ -22,6 +22,13 @@ int print_time = millis();
 int t = 0;
 
 // FUNCTIONS
+void pulse(float &rate, float &value, int FB = FB) {
+  value += rate;
+  if(value > FB || value < 0) {
+    rate *= -1;
+    value += rate * 2;
+  }
+}
 
 // SET UP
 void setup() {
@@ -35,23 +42,11 @@ void setup() {
 
 // MAIN
 void loop() {
-  
-  led1_val += led1_rate;
-  if(led1_val > FB || led1_val < 0) {
-    led1_rate *= -1;
-    led1_val += led1_rate*2;
-  }
-  led2_val += led2_rate;
-  if(led2_val > FB || led2_val < 0) {
-    led2_rate *= -1;
-    led2_val += led2_rate*2;
-  }
-  led3_val += led3_rate;
-  if(led3_val > FB || led3_val < 0) {
-    led3_rate *= -1;
-    led3_val += led3_rate*2;
-  }
 
+  pulse(led1_rate, led1_val);
+  pulse(led2_rate, led2_val);
+  pulse(led3_rate, led3_val);
+  
   analogWrite(LED1, led1_val);
   analogWrite(LED2, led2_val);
   analogWrite(LED3, led3_val);
