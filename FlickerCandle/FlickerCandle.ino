@@ -4,6 +4,7 @@ int const LED2 = A3;
 int const LED3 = 3;
 int const POT = A4;
 int const UPDATE_INT = 5;  // update the light status every x milliseconds (kinda like a frame rate)
+int const PRINT_INT = 500;
 int const STD_BRIGHT = 0.8;  // standard brightness, in fraction
 int const FB = 255;  // full brightness value
 
@@ -14,6 +15,8 @@ float led1_val = 0;
 float led2_val = 0;
 float led3_val = 0;
 int last_time = millis();
+int print_time = millis();
+int t = 0;
 
 
 // FUNCTIONS
@@ -44,8 +47,17 @@ void loop() {
   analogWrite(LED2, led2_val);
   analogWrite(LED3, led3_val);
 
-  if(last_time < millis() + UPDATE_INT) {
-    delay(UPDATE_INT - (millis()-last_time));
+  if(print_time + PRINT_INT < millis()) {
+    Serial.print("led3_val: ");
+    Serial.println(led3_val);
+    Serial.print("LED_PULSE_RATE: ");
+    Serial.println(LED_PULSE_RATE);
+    print_time = millis();
+  }
+
+  t = millis();
+  if(last_time < t + UPDATE_INT) {
+    delay(UPDATE_INT - (t-last_time));
   }
   last_time = millis();
 }
