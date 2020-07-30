@@ -8,7 +8,7 @@ int const PRINT_INT = 500;
 int const STD_BRIGHT = 0.8;  // standard brightness, in fraction
 int const FB = 255;  // full brightness value
 
-float LED_PULSE_RATE = FB/(1000.0/5.0);
+float LED_PULSE_RATE = FB/(1000.0) * 1.0/1 * UPDATE_INT;
 
 // VARIABLES
 float led1_val = 0;
