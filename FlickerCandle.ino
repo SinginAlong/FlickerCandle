@@ -21,6 +21,19 @@ int last_time = millis();
 int print_time = millis();
 int t = 0;
 
+/*
+ * States:
+ * 0 - constant
+ * 1 - standing up (mostly constant)
+ * 2 - standing down
+ * 3 - flickering down
+ * 4 - flickering up
+ */
+unsigned short led1_state = 0;
+unsigned short led2_state = 0;
+unsigned short led3_state = 0;
+
+
 // FUNCTIONS
 void pulse(float &rate, float &value, int FB = FB) {
   value += rate;
@@ -28,6 +41,12 @@ void pulse(float &rate, float &value, int FB = FB) {
     rate *= -1;
     value += rate * 2;
   }
+}
+
+void flicker(float &rate, float $value, int rdown, int rup) {
+  // rdown is rate down
+  // rup is rate up
+  
 }
 
 // SET UP
