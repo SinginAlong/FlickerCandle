@@ -33,6 +33,16 @@ unsigned short led1_state = 0;
 unsigned short led2_state = 0;
 unsigned short led3_state = 0;
 
+// CLASSES
+// I definitely need a class to manage the leds
+/*
+ * class variables
+ * current value (float)
+ * current rate (float)
+ * current state (float)
+ * values pertainting to states (rup, rdown, duration...)
+ */
+
 
 // FUNCTIONS
 void pulse(float &rate, float &value, int FB = FB) {
