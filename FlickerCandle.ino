@@ -4,11 +4,6 @@ int const UPDATE_INT = 5;  // update the light status every x milliseconds (kind
 int const PRINT_INT = 100;
 int const STD_BRIGHT = 0.8;  // standard brightness, in fraction
 
-// FM/(milliseconds in a second) * 1/transitions_per_second * UPDATE_INT;
-// float led1_rate = FB/(1000.0) * 1.0/1 * UPDATE_INT;
-// float led2_rate = FB/(1000.0) * 1.0/4 * UPDATE_INT;
-// float led3_rate = FB/(1000.0) * 1.0/1.05 * UPDATE_INT;
-
 // VARIABLES
 int last_time = millis();
 int print_time = millis();
@@ -26,25 +21,26 @@ class LED {
   private:
     int pin = -1;
     int FB = 255;  // full brightness / top level
-    float pulse_rate = 1;
-    bool pulse_done = false;
     float lvl = 200;  // the brightness level of the led
+    
+    float pulse_rate = 1;
     float flicker_depth = 0;
     float urate = 0;  // up rate for current state
     float drate = 0;  // down rate for current state
-    bool flicker_done = false;
     float wave_depth;
     float wave_rate = 0;
-    float wave_duration = 0;  // in millis
-    bool wave_done = false;
-
+    float wave_duration = 0;  // in millis - with this actually be used?
+    
+    unsigned short pulse_state = 0;
+    unsigned short flicker_state = 0;
+    unsigned short wave_state = 0;
     unsigned short state = 1;
     /*
     * States:
-    * 0 - constant
-    * 1 - pulsing
-    * 2 - flickering
-    * 3 - waving
+    * 0 - not active
+    * 1 - active
+    * 2 - complete, unacknowledged
+    * 3 - complete, acknowledged
     */
         
   public:
@@ -69,7 +65,22 @@ void LED::start_pulse(float rate) {
   pulse_rate = -1*abs(rate);
 }
 
+void LED::start_flicker(float rateup, float ratedown, float depth) {
+  state = 2;
+  urate = rateup;
+  drate = ratedown;
+  flicker_depth = depth;
+}
+
+void LED::start_wave(float rate, int duration) {
+  wave_state = 1;
+  wave_rate = -1*abs(rate);
+  wave_duration = duration;
+}
+
 void LED::pulse() {
+  // FM/(milliseconds in a second) * 1/transitions_per_second * UPDATE_INT;
+  // float led1_rate = FB/(1000.0) * 1.0/1 * UPDATE_INT;
   lvl += pulse_rate;
   if(lvl < 0) {
     pulse_rate *= -1;
@@ -77,16 +88,8 @@ void LED::pulse() {
   }
   if(lvl > FB) {
     lvl = FB;
-    pulse_done = true;
-    state = 0;
+    pulse_state = 2;
   }
-}
-
-void LED::start_flicker(float rateup, float ratedown, float depth) {
-  state = 2;
-  urate = rateup;
-  drate = ratedown;
-  flicker_depth = depth;
 }
 
 void LED::flicker() {
@@ -96,34 +99,44 @@ void LED::flicker() {
     lvl += urate;
     if(lvl > FB) {
       lvl = FB;
-      flicker_done = true;
-      state = 0;
+      flicker_state = 2;  // complete, unacknowledged
+    }
+  }
+}
+
+void LED::wave() {
+  if(lvl > wave_depth) {
+    lvl -= wave_rate;
+  } else {
+    lvl += wave_rate;
+    if(lvl > FB) {
+      lvl = FB;
+      wave_state = 2;
     }
   }
 }
 
 void LED::update_led() {
-  if(state == 0) {
-    // do nothing, leave the lvl at current, constant
-  }
-  if(state == 1) {  // pulsing
+  if(pulse_state == 1) {
     this->pulse();
   }
-  if(state == 2) { // flickering
+  if(flicker_state == 1) {
    this->flicker();
   }
-  
+  if(wave_state == 1) {
+    this->wave();
+  }
   analogWrite(pin, lvl);
 }
 
 bool LED::is_event() {
-  if(pulse_done || flicker_done || wave_done) {
+  if(pulse_state == 2 || flicker_state == 2 || wave_state == 2) {
     return true;
   }
   return false;
 }
 
-// not sure the best way to handle events (make event class, requires deleting)
+// not sure the best way to handle events
 
 LED led1(3);
 LED led2(5);
