@@ -1,7 +1,7 @@
 // CONSTANTS
 // int const POT = A4;
 int const UPDATE_INT = 5;  // update the light status every x milliseconds (kinda like a frame rate)
-int const PRINT_INT = 100;
+int const PRINT_INT = 500;
 int const STD_BRIGHT = 0.8;  // standard brightness, in fraction
 
 // VARIABLES
@@ -70,6 +70,8 @@ class LED {
     bool flicker_done();
     bool wave_done();
     void handle_LED_events();
+    void print_lvl();
+    void print_flicker_state();
 };
 
 LED::LED(int led_pin) {
@@ -87,7 +89,9 @@ void LED::start_flicker(float rateup, float ratedown, float depth) {
   urate = rateup;
   drate = ratedown;
   flicker_depth = depth;
-  Serial.print("started flicker, rateup: ");
+  Serial.print("LED pin: ");
+  Serial.print(pin);
+  Serial.print(" started flicker, rateup: ");
   Serial.print(urate);
   Serial.print(", ratedown: ");
   Serial.print(drate);
@@ -162,7 +166,7 @@ bool LED::pulse_done() {
 }
 
 bool LED::flicker_done() {
-  if(flicker_state == 2) {
+  if(flicker_state >= 2) {
     flicker_state = 3;
     return true;
   }
@@ -170,7 +174,7 @@ bool LED::flicker_done() {
 }
 
 bool LED::wave_done() {
-  if(wave_state == 2) {
+  if(wave_state >= 2) {
     wave_state = 3;
     return true;
   }
@@ -190,6 +194,13 @@ void LED::handle_LED_events() {
     this->start_wave(norm(wave_rate_mean, wave_rate_sigma),
                      norm(wave_depth_mean, wave_depth_sigma));
   }
+}
+
+void LED::print_lvl() {
+  Serial.println(lvl);
+}
+void LED::print_flicker_state() {
+  Serial.println(flicker_state);
 }
 
 LED led1(3);
@@ -212,9 +223,18 @@ void loop() {
   led1.update_led();
   led2.update_led();
   led3.update_led();
+
+  t = millis();
+  if(t > print_time + PRINT_INT) {
+    // led1.print_lvl();
+    // led2.print_lvl();
+    // led3.print_lvl();
+    // led1.print_flicker_state();
+    print_time = t;
+  }
   
   t = millis();
-  if(last_time < t + UPDATE_INT) {
+  if(t < (last_time + UPDATE_INT)) {
     delay(UPDATE_INT - (t-last_time));
   }
   last_time = millis();
